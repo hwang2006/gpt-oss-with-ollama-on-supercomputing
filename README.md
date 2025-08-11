@@ -663,6 +663,7 @@ done < prompts.txt
 #### Python Example
 For Python users, here's a simple example using the `requests` library:
 ```python
+# ollama_test.py
 import requests
 import json
 
