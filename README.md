@@ -1,4 +1,4 @@
-# Running GPT-OSS with Ollama + Gradio on a Supercomputer (Singularity + SLURM)
+# Running GPT-OSS with Ollama + Gradio on a Supercomputer (SLURM + Singularity)
 This repository contains scripts to run [Ollama](https://ollama.com/) with large-scale language models such as GPT-OSS on a supercomputer, using Singularity for containerization and SLURM for job scheduling. It also provides a [Gradio](https://www.gradio.app/) web interface for easy interaction with your models.
 
 Lask week, OpenAI released GPT-OSS as a fully open-source large language model family, marking a major shift in the accessibility of cutting-edge AI. This release enables researchers, developers, and institutions to run state-of-the-art models without relying on closed APIs, opening doors for transparent experimentation, customization, and deployment at scale. The motivation for creating this repository is to provide a ready-to-use HPC workflow that takes advantage of this new freedom—allowing you to run GPT-OSS on HPC enviroments with GPU acceleration.
