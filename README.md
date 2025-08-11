@@ -504,12 +504,12 @@ ssh -L localhost:7860:gpu50:7860 -L localhost:11434:gpu50:11434 qualis@neuron.ks
 
 - Then, open http://localhost:7860 in your browser to access the Gradio UI and pull a gpt-oss model (for example, 'gpt-oss:latest') to the ollama server models directory (e.g., OLLAMA_MODELS="/scratch/$USER/.ollama" in the slurm script) from the [Ollama models site](https://ollama.com/search) 
 
-<img width="1231" alt="gradio_ui" src="https://github.com/user-attachments/assets/006ea85b-3535-4f2b-9f39-144ef26446bf" />
+<img width="1134" height="707" alt="Image" src="https://github.com/user-attachments/assets/d26f62ce-99d5-479e-a7d4-79b1bb2eb009" />
 
 
 #### Once the gpt-oss model is successfully downloaded, it will be listed in the 'Select Model' dropdown menu on the top right of the Gradio UI. You can start chatting with the gpt-oss model. You could also pull and chat with other models (e.g., llama3, mistral, etc) by pulling them from the Ollama models list site. 
 
-<img width="1178" alt="gradio_ui2" src="https://github.com/user-attachments/assets/291e20f0-a901-48f8-bb46-a0f667dc79f6" />
+
 
 
 
