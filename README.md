@@ -1,23 +1,35 @@
 # Running GPT-OSS with Ollama + Gradio on a Supercomputer (SLURM + Singularity)
 This repository contains scripts to run [Ollama](https://ollama.com/) with large-scale language models such as GPT-OSS on a supercomputer, using Singularity for containerization and SLURM for job scheduling. It also provides a [Gradio](https://www.gradio.app/) web interface for easy interaction with your models.
 
-Lask week, OpenAI released GPT-OSS as a fully open-source large language model family, marking a major shift in the accessibility of cutting-edge AI. This release enables researchers, developers, and institutions to run state-of-the-art models without relying on closed APIs, opening doors for transparent experimentation, customization, and deployment at scale. The motivation for creating this repository is to provide a ready-to-use HPC workflow that takes advantage of this new freedom—allowing you to run GPT-OSS on HPC enviroments with GPU acceleration.
+Last week, OpenAI released GPT-OSS as a fully open-source large language model family, marking a major shift in the accessibility of cutting-edge AI. This release enables researchers, developers, and institutions to run state-of-the-art models without relying on closed APIs, opening doors for transparent experimentation, customization, and deployment at scale. The motivation for creating this repository is to provide a ready-to-use HPC workflow that takes advantage of this new freedom—allowing you to run GPT-OSS on HPC environments with GPU acceleration.
 
-It demonstrates how to run and test GPT-OSS using Ollama with an individual's own account on a SLURM-managed supercomputer. Ollama provides a lightweight framework for downloading and running AI models locally, making AI deployment and management easier across different platforms, including macOS, Linux, and Windows. You can also access the Gradio UI to chat interactively with the GPT-OSS model.
+It demonstrates how to run and test GPT-OSS using Ollama with an individual's own account on a SLURM-managed supercomputer. Ollama provides a lightweight framework for downloading and running AI models locally, making AI deployment and management easier across different platforms, including macOS, Linux, and Windows. You can access the models through either the Gradio UI for interactive chat or the REST API for programmatic access.
 
+## Table of Contents
+- [Introduction](#introduction)
+- [Requirements](#requirements)
+- [KISTI Neuron GPU Cluster](#kisti-neuron-gpu-cluster)
+- [Installing Conda](#installing-conda)
+- [Cloning the Repository](#cloning-the-repository)
+- [Preparing Ollama Singularity Image](#preparing-ollama-singularity-image)
+- [Creating a Conda Virtual Environment](#creating-a-conda-virtual-environment)
+- [Running Ollama and Gradio on a Compute Node](#running-ollama-and-gradio-on-a-compute-node)
+- [Connecting to the Gradio UI](#connecting-to-the-gradio-ui)
+- [API Access](#api-access)
 
 ## Introduction
 This setup is designed for HPC environments where:
 - You have access to **SLURM-managed GPU nodes** (H200, A100 etc.).
 - You want to **serve large models** (e.g., `gpt-oss:120b`) efficiently using Ollama.
 - You want a **browser-based interface** (Gradio) for interacting with the model.
+- You need **programmatic API access** for automation and integration.
 
 The SLURM job script:
 - Starts Ollama inside a Singularity container with **CUDA GPU acceleration**.
 - Starts Gradio UI in parallel, connected to the Ollama API.
 - Includes **heartbeat monitoring** and GPU utilization reports.
 - Handles **port forwarding** instructions automatically.
-
+- Provides **REST API access** for programmatic interaction.
 
 ## Requirements
 - **HPC cluster** with SLURM
@@ -136,14 +148,14 @@ conda 25.7.0
 ```
 
 ## Cloning the Repository
-to set up this repository on your scratch direcory.
+to set up this repository on your scratch directory.
 ```
 [glogin01]$ cd /scratch/$USER
 [glogin01]$ git clone https://github.com/hwang2006/gpt-oss-with-ollama-on-supercomputing.git
 [glogin01]$ cd gpt-oss-with-ollama-on-supercomputer
 ```
 
-## Preparing Ollama Singularity image
+## Preparing Ollama Singularity Image
 ```bash
 [glogin01]$ singularity pull ollama_latest.sif docker://ollama/ollama:latest
 INFO:    Converting OCI blobs to SIF format
@@ -215,11 +227,11 @@ Collecting aiofiles<25.0,>=22.0 (from gradio)
 Successfully installed aiofiles-24.1.0 annotated-types-0.7.0 anyio-4.10.0 brotli-1.1.0 certifi-2025.8.3 charset_normalizer-3.4.3 click-8.2.1 fastapi-0.116.1 ffmpy-0.6.1 filelock-3.18.0 fsspec-2025.7.0 gradio-5.42.0 gradio-client-1.11.1 groovy-0.1.2 h11-0.16.0 hf-xet-1.1.7 httpcore-1.0.9 httpx-0.28.1 huggingface-hub-0.34.4 idna-3.10 jinja2-3.1.6 markdown-it-py-3.0.0 markupsafe-3.0.2 mdurl-0.1.2 numpy-2.3.2 orjson-3.11.1 packaging-25.0 pandas-2.3.1 pillow-11.3.0 pydantic-2.11.7 pydantic-core-2.33.2 pydub-0.25.1 pygments-2.19.2 python-dateutil-2.9.0.post0 python-multipart-0.0.20 pytz-2025.2 pyyaml-6.0.2 requests-2.32.4 rich-14.1.0 ruff-0.12.8 safehttpx-0.1.6 semantic-version-2.10.0 shellingham-1.5.4 six-1.17.0 sniffio-1.3.1 starlette-0.47.2 tomlkit-0.13.3 tqdm-4.67.1 typer-0.16.0 typing-extensions-4.14.1 typing-inspection-0.4.1 tzdata-2025.2 urllib3-2.5.0 uvicorn-0.35.0 websockets-15.0.1
 ```
 
-## Running Gradio UI along with launching Ollama and Gradio server on a compute node
-This section describes how to run the Gradio UI along with launching the Ollama server and Gradio server on a compute node. The following Slurm script will start both servers and output a port forwarding command, which you can use to connect remotely.
+## Running Ollama and Gradio on a Compute Node
+This section describes how to run the Gradio UI along with launching the Ollama server on a compute node. The following Slurm script will start both servers and output a port forwarding command, which you can use to connect remotely.
 
 ### Slurm Script (ollama_gradio_run_singularity.sh)
-```
+```bash
 #!/bin/bash
 #SBATCH --job-name=ollama_gradio
 #SBATCH --comment=pytorch
@@ -496,8 +508,8 @@ Submitted batch job XXXXXX
 ssh -L localhost:7860:gpu50:7860 -L localhost:11434:gpu50:11434 qualis@neuron.ksc.re.kr
 ```
 
-### Connecting to the Gradio UI
-- Once the job starts, open a a new SSH client (e.g., Putty, MobaXterm, PowerShell, Command Prompt, etc) on your local machine and run the port forwarding command displayed in port_forwarding_command_xxxxx.txt:
+## Connecting to the Gradio UI
+- Once the job starts, open a new SSH client (e.g., Putty, MobaXterm, PowerShell, Command Prompt, etc) on your local machine and run the port forwarding command displayed in port_forwarding_command_xxxxx.txt:
 
 <img width="863" height="380" alt="Image" src="https://github.com/user-attachments/assets/0f30fa76-1022-4853-858a-cfba52116184" />
 
@@ -506,9 +518,254 @@ ssh -L localhost:7860:gpu50:7860 -L localhost:11434:gpu50:11434 qualis@neuron.ks
 <img width="1134" height="707" alt="Image" src="https://github.com/user-attachments/assets/d26f62ce-99d5-479e-a7d4-79b1bb2eb009" />
 
 
-#### Once the gpt-oss model is successfully downloaded, it will be listed in the 'Select Model' dropdown menu on the top right of the Gradio UI. You can start chatting with the gpt-oss model. You could also pull and chat with other models (e.g., llama3, mistral, etc) by pulling them from the Ollama models list site. 
+- Once the gpt-oss model is successfully downloaded, it will be listed in the 'Select Model' dropdown menu on the top right of the Gradio UI. You can start chatting with the gpt-oss model. You could also pull and chat with other models (e.g., llama3, mistral, etc) by pulling them from the Ollama models list site. 
 
 <img width="1141" height="657" alt="Image" src="https://github.com/user-attachments/assets/5991e328-7140-40b9-a5d0-cc4bebf08157" />
 
+## API Access
 
+In addition to the Gradio web UI, you can interact with the Ollama server directly using its REST API. This is useful for programmatic access, automation, or integration with other tools.
 
+### Prerequisites
+- Ensure the Ollama server is running (follow the instructions above)
+- Set up port forwarding if accessing from your local machine:
+```bash
+ssh -L localhost:11434:gpu##:11434 $USER@neuron.ksc.re.kr
+```
+
+### Basic API Commands
+
+#### 1. List Available Models
+Check which models are currently available on the server:
+```bash
+curl http://localhost:11434/api/tags
+```
+
+#### 2. Pull a Model
+Download a model from the Ollama registry:
+```bash
+curl http://localhost:11434/api/pull -d '{
+  "name": "gpt-oss:latest"
+}'
+```
+
+For streaming progress updates:
+```bash
+curl http://localhost:11434/api/pull -d '{
+  "name": "gpt-oss:latest",
+  "stream": true
+}'
+```
+
+#### 3. Generate a Response (Non-streaming)
+Send a prompt and receive a complete response:
+```bash
+curl http://localhost:11434/api/generate -d '{
+  "model": "gpt-oss:latest",
+  "prompt": "What is the capital of South Korea?",
+  "stream": false
+}'
+```
+
+#### 4. Generate a Response (Streaming)
+For real-time streaming responses (similar to ChatGPT):
+```bash
+curl http://localhost:11434/api/generate -d '{
+  "model": "gpt-oss:latest",
+  "prompt": "Explain quantum computing in simple terms",
+  "stream": true
+}'
+```
+
+#### 5. Chat Completion (Conversation)
+For multi-turn conversations with context:
+```bash
+curl http://localhost:11434/api/chat -d '{
+  "model": "gpt-oss:latest",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Hello! Can you help me understand machine learning?"
+    },
+    {
+      "role": "assistant",
+      "content": "Of course! Machine learning is a subset of artificial intelligence where computers learn patterns from data."
+    },
+    {
+      "role": "user",
+      "content": "What are the main types?"
+    }
+  ],
+  "stream": false
+}'
+```
+
+#### 6. Model Information
+Get detailed information about a specific model:
+```bash
+curl http://localhost:11434/api/show -d '{
+  "name": "gpt-oss:latest"
+}'
+```
+
+#### 7. Check Model Status
+Verify if a model is loaded and ready:
+```bash
+curl http://localhost:11434/api/generate -d '{
+  "model": "gpt-oss:latest",
+  "prompt": "",
+  "raw": true,
+  "keep_alive": 0
+}'
+```
+
+### Advanced Usage
+
+#### Custom Parameters
+You can customize generation parameters for fine-tuned control:
+```bash
+curl http://localhost:11434/api/generate -d '{
+  "model": "gpt-oss:latest",
+  "prompt": "Write a haiku about supercomputers",
+  "options": {
+    "temperature": 0.7,
+    "top_p": 0.9,
+    "top_k": 40,
+    "num_predict": 100,
+    "stop": ["\n\n", "###"]
+  },
+  "stream": false
+}'
+```
+
+#### Batch Processing with Script
+Create a simple bash script for batch processing:
+```bash
+#!/bin/bash
+# batch_inference.sh
+
+MODEL="gpt-oss:latest"
+API_URL="http://localhost:11434/api/generate"
+
+# Read prompts from file
+while IFS= read -r prompt; do
+  echo "Processing: $prompt"
+  response=$(curl -s $API_URL -d "{
+    \"model\": \"$MODEL\",
+    \"prompt\": \"$prompt\",
+    \"stream\": false
+  }" | jq -r '.response')
+  echo "Response: $response"
+  echo "---"
+done < prompts.txt
+```
+
+#### Python Example
+For Python users, here's a simple example using the `requests` library:
+```python
+import requests
+import json
+
+# API endpoint
+url = "http://localhost:11434/api/generate"
+
+# Request payload
+payload = {
+    "model": "gpt-oss:latest",
+    "prompt": "What are the benefits of using HPC for AI research?",
+    "stream": False
+}
+
+# Send request
+response = requests.post(url, json=payload)
+
+# Parse and print response
+if response.status_code == 200:
+    result = response.json()
+    print(result['response'])
+else:
+    print(f"Error: {response.status_code}")
+```
+
+#### Monitoring API Health
+Check if the Ollama API is responsive:
+```bash
+#!/bin/bash
+# health_check.sh
+
+check_ollama() {
+    if curl -s --max-time 5 http://localhost:11434/api/tags > /dev/null 2>&1; then
+        echo "✅ Ollama API is healthy"
+        return 0
+    else
+        echo "❌ Ollama API is not responding"
+        return 1
+    fi
+}
+
+# Run health check
+check_ollama
+```
+
+### API Response Format
+
+#### Successful Generation Response:
+```json
+{
+  "model": "gpt-oss:latest",
+  "created_at": "2025-01-15T10:30:00.000Z",
+  "response": "Seoul is the capital of South Korea.",
+  "done": true,
+  "context": [1, 2, 3, ...],
+  "total_duration": 5043869416,
+  "load_duration": 5876490,
+  "prompt_eval_count": 26,
+  "prompt_eval_duration": 325953000,
+  "eval_count": 290,
+  "eval_duration": 4709213000
+}
+```
+
+#### Streaming Response Format:
+Each line is a JSON object when streaming is enabled:
+```json
+{"model":"gpt-oss:latest","created_at":"2025-01-15T10:30:00.000Z","response":"The","done":false}
+{"model":"gpt-oss:latest","created_at":"2025-01-15T10:30:00.001Z","response":" capital","done":false}
+{"model":"gpt-oss:latest","created_at":"2025-01-15T10:30:00.002Z","response":" of","done":false}
+...
+{"model":"gpt-oss:latest","created_at":"2025-01-15T10:30:01.000Z","response":"","done":true,"total_duration":1000000000}
+```
+
+### Performance Tips
+
+1. **Keep Models Warm**: Use the `keep_alive` parameter to keep models loaded in memory:
+```bash
+curl http://localhost:11434/api/generate -d '{
+  "model": "gpt-oss:latest",
+  "keep_alive": "30m"
+}'
+```
+
+2. **Batch Requests**: Process multiple prompts efficiently by keeping the model loaded between requests
+
+3. **Optimize Context**: For long conversations, manage context size to balance performance and memory:
+```bash
+curl http://localhost:11434/api/generate -d '{
+  "model": "gpt-oss:latest",
+  "prompt": "Your prompt here",
+  "options": {
+    "num_ctx": 4096
+  }
+}'
+```
+
+### Troubleshooting API Access
+
+If you encounter issues:
+
+1. **Connection Refused**: Ensure port forwarding is active and the Ollama server is running
+2. **Model Not Found**: Verify the model is pulled using the list models command
+3. **Timeout Issues**: Large models may take time to load initially; increase timeout values
+4. **Memory Errors**: Check GPU memory availability with `nvidia-smi`
+
+For more detailed API documentation, refer to the [Ollama API Documentation](https://github.com/ollama/ollama/blob/main/docs/api.md).
