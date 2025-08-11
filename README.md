@@ -499,7 +499,7 @@ ssh -L localhost:7860:gpu50:7860 -L localhost:11434:gpu50:11434 qualis@neuron.ks
 ### Connecting to the Gradio UI
 - Once the job starts, open a a new SSH client (e.g., Putty, MobaXterm, PowerShell, Command Prompt, etc) on your local machine and run the port forwarding command displayed in port_forwarding_command:
 
-<img width="787" alt="Image" src="https://github.com/user-attachments/assets/25b218f2-c188-43a0-8081-2814ba9044b4" />
+<img width="1134" height="707" alt="Image" src="https://github.com/user-attachments/assets/d26f62ce-99d5-479e-a7d4-79b1bb2eb009" />
 
 
 - Then, open http://localhost:7860 in your browser to access the Gradio UI and pull a gpt-oss model (for example, 'gpt-oss:latest') to the ollama server models directory (e.g., OLLAMA_MODELS="/scratch/$USER/.ollama" in the slurm script) from the [Ollama models site](https://ollama.com/search) 
