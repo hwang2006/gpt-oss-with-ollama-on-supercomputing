@@ -1,0 +1,5 @@
+What is machine learning?
+Explain quantum computing in simple terms
+Write a haiku about supercomputers
+What are the benefits of GPU acceleration?
+How does SLURM work?
