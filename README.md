@@ -913,7 +913,7 @@ curl http://localhost:11434/api/generate -d '{
 }'
 ```
 
-### 8. Troubleshooting API Access
+### 9. Troubleshooting API Access
 
 If you encounter issues:
 
@@ -921,8 +921,6 @@ If you encounter issues:
 2. **Model Not Found**: Verify the model is pulled using the list models command
 3. **Timeout Issues**: Large models may take time to load initially; increase timeout values
 4. **Memory Errors**: Check GPU memory availability with `nvidia-smi`
-
-For more detailed API documentation, refer to the [Ollama API Documentation](https://github.com/ollama/ollama/blob/main/docs/api.md).
 
 ## Reference
 - [GitHub Issues] the runner fails to pick up NVIDIA GPUs with SLURM](https://github.com/ollama/ollama/issues/11842#issuecomment-3177221414)
