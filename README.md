@@ -527,8 +527,10 @@ ssh -L localhost:7860:gpu50:7860 -L localhost:11434:gpu50:11434 qualis@neuron.ks
 <img width="1141" height="657" alt="Image" src="https://github.com/user-attachments/assets/5991e328-7140-40b9-a5d0-cc4bebf08157" />
 
 ## API Access
-
-In addition to the Gradio web UI, you can interact with the Ollama server directly using its REST API. This is useful for programmatic access, automation, or integration with other tools.
+In addition to the Gradio web UI, you can interact with the Ollama server using multiple API approaches:
+1. **Native Ollama REST API** - Direct access to Ollama's endpoints
+2. **OpenAI-compatible API** - Use existing OpenAI SDK code with minimal changes
+3. **Ollama SDKs** - Python and JavaScript native libraries
 
 ### Prerequisites
 - Ensure the Ollama server is running (follow the instructions above)
@@ -537,15 +539,15 @@ In addition to the Gradio web UI, you can interact with the Ollama server direct
 ssh -L localhost:11434:gpu##:11434 $USER@neuron.ksc.re.kr
 ```
 
-### Basic API Commands
+## 1. Native Ollama REST API
 
-#### 1. List Available Models
+#### List Available Models
 Check which models are currently available on the server:
 ```bash
 curl http://localhost:11434/api/tags
 ```
 
-#### 2. Pull a Model
+#### Pull a Model
 Download a model from the Ollama registry (use an existing tag as listed by `/api/tags`, e.g., `gpt-oss:latest` or `gpt-oss:120b`):
 ```bash
 curl http://localhost:11434/api/pull -d '{
@@ -561,7 +563,7 @@ curl http://localhost:11434/api/pull -d '{
 }'
 ```
 
-#### 3. Generate a Response (Non-streaming)
+#### Generate a Response (Non-streaming)
 Send a prompt and receive a complete response:
 ```bash
 curl http://localhost:11434/api/generate -d '{
@@ -571,7 +573,7 @@ curl http://localhost:11434/api/generate -d '{
 }'
 ```
 
-#### 4. Generate a Response (Streaming)
+#### Generate a Response (Streaming)
 For real-time streaming responses (similar to ChatGPT):
 ```bash
 curl http://localhost:11434/api/generate -d '{
@@ -581,7 +583,7 @@ curl http://localhost:11434/api/generate -d '{
 }'
 ```
 
-#### 5. Chat Completion (Conversation)
+#### Chat Completion (Conversation)
 For multi-turn conversations with context:
 ```bash
 curl http://localhost:11434/api/chat -d '{
@@ -604,7 +606,7 @@ curl http://localhost:11434/api/chat -d '{
 }'
 ```
 
-#### 6. Model Information
+#### Model Information
 Get detailed information about a specific model:
 ```bash
 curl http://localhost:11434/api/show -d '{
@@ -612,7 +614,7 @@ curl http://localhost:11434/api/show -d '{
 }'
 ```
 
-#### 7. Check Model Status
+#### Check Model Status
 Verify if a model is loaded and ready:
 ```bash
 curl http://localhost:11434/api/generate -d '{
@@ -623,10 +625,8 @@ curl http://localhost:11434/api/generate -d '{
 }'
 ```
 
-### Advanced Usage
-
-#### Custom Parameters
-You can customize generation parameters for fine-tuned control:
+### Advanced Generation Parameters
+Customize generation with fine-tuned control:
 ```bash
 curl http://localhost:11434/api/generate -d '{
   "model": "gpt-oss:latest",
@@ -642,11 +642,130 @@ curl http://localhost:11434/api/generate -d '{
 }'
 ```
 
-#### Batch Processing with Script
-Create a simple bash script for batch processing:
+## 2. OpenAI-Compatible API
+
+Ollama provides a **Chat Completions-compatible API** that works with the OpenAI SDK. This allows you to reuse existing OpenAI code with minimal modifications.
+First, install required packages:
+```bash
+pip install agents[litellm]
+```
+
+### Basic Chat Usage with OpenAI SDK
+```python
+# openai_chat.py
+from openai import OpenAI
+
+# Configure client to use local Ollama endpoint
+client = OpenAI(
+    base_url="http://localhost:11434/v1",  # Local Ollama API
+    api_key="ollama"                        # Dummy key (required but not used)
+)
+
+# Use exactly like OpenAI API
+response = client.chat.completions.create(
+    model="gpt-oss:latest",  # or "gpt-oss:latest", "gpt-oss:20b"
+    messages=[
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": "Explain what MXFP4 quantization is."}
+    ]
+)
+
+print(response.choices[0].message.content)
+```
+### Tools Usage (Function Calling)
+
+Ollama supports OpenAI-style function calling:
+```python
+# openai_tool_use.py
+from openai import OpenAI
+import json
+
+client = OpenAI(
+    base_url="http://localhost:11434/v1",
+    api_key="ollama"
+)
+
+# Define available tools
+tools = [
+    {
+        "type": "function",
+        "function": {
+            "name": "get_weather",
+            "description": "Get current weather in a given city",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "city": {"type": "string", "description": "City name"}
+                },
+                "required": ["city"]
+            },
+        },
+    }
+]
+
+# Make request with tools
+response = client.chat.completions.create(
+    model="gpt-oss:latest",
+    messages=[{"role": "user", "content": "What's the weather in Seoul right now?"}],
+    tools=tools,
+    tool_choice="auto"
+)
+
+# Check if the model wants to call a function
+message = response.choices[0].message
+if message.tool_calls:
+    for tool_call in message.tool_calls:
+        if tool_call.function.name == "get_weather":
+            # Parse arguments and call your function
+            args = json.loads(tool_call.function.arguments)
+            # weather_result = get_weather(args["city"])
+
+            # Send the result back to the model
+            follow_up = client.chat.completions.create(
+                model="gpt-oss:latest",
+                messages=[
+                    {"role": "user", "content": "What's the weather in Seoul right now?"},
+                    message,
+                    {
+                        "role": "tool",
+                        "tool_call_id": tool_call.id,
+                        "content": "The weather in Seoul is sunny, 22°C"
+                    }
+                ]
+            )
+            print(follow_up.choices[0].message.content)
+
+```
+
+### Streaming Responses
+
+```python
+# openai_streaming.py
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="http://localhost:11434/v1",
+    api_key="ollama"
+)
+
+# Stream responses like with OpenAI
+stream = client.chat.completions.create(
+    model="gpt-oss:latest",
+    messages=[{"role": "user", "content": "Write a story about a supercomputer"}],
+    stream=True
+)
+
+for chunk in stream:
+    if chunk.choices[0].delta.content is not None:
+        print(chunk.choices[0].delta.content, end="")
+```
+
+## 4. Batch Processing Examples
+
+### Bash Script for Ollama Batch processing
 ```bash
 #!/bin/bash
-# batch_inference.sh
+# batch_process_ollama.sh
 
 MODEL="gpt-oss:latest"
 API_URL="http://localhost:11434/api/generate"
@@ -662,57 +781,87 @@ while IFS= read -r prompt; do
   echo "Response: $response"
   echo "---"
 done < prompts.txt
+
 ```
 
-#### Python Example
-For Python users, here's a simple example using the `requests` library:
-```python
-# ollama_test.py
-import requests
-import json
-
-# API endpoint
-url = "http://localhost:11434/api/generate"
-
-# Request payload
-payload = {
-    "model": "gpt-oss:latest",
-    "prompt": "What are the benefits of using HPC for AI research?",
-    "stream": False
-}
-
-# Send request
-response = requests.post(url, json=payload)
-
-# Parse and print response
-if response.status_code == 200:
-    result = response.json()
-    print(result['response'])
-else:
-    print(f"Error: {response.status_code}")
-```
-
-#### Monitoring API Health
-Check if the Ollama API is responsive:
+### Bash Script for OpenAI Batch processing
 ```bash
 #!/bin/bash
-# health_check.sh
+# batch_process_openai.sh
 
-check_ollama() {
-    if curl -s --max-time 5 http://localhost:11434/api/tags > /dev/null 2>&1; then
-        echo "✅ Ollama API is healthy"
-        return 0
-    else
-        echo "❌ Ollama API is not responding"
-        return 1
-    fi
-}
+MODEL="gpt-oss:latest"
+API_URL="http://localhost:11434/v1/chat/completions"
 
-# Run health check
-check_ollama
+# Read prompts from file
+while IFS= read -r prompt; do
+    echo "Processing: $prompt"
+
+    response=$(curl -s $API_URL \
+        -H "Content-Type: application/json" \
+        -d "{
+            \"model\": \"$MODEL\",
+            \"messages\": [{\"role\": \"user\", \"content\": \"$prompt\"}],
+            \"stream\": false
+        }" | jq -r '.choices[0].message.content')
+
+    echo "Response: $response"
+    echo "---"
+done < prompts.txt
 ```
 
-### API Response Format
+## 5. Health Monitoring
+
+### API Health Check Script
+```python
+#!/usr/bin/env python3
+# health_check.py
+
+import requests
+import time
+from datetime import datetime
+
+def check_ollama_health():
+    """Check if Ollama services are healthy."""
+    checks = {
+        "Ollama API": "http://localhost:11434/api/tags",
+        "OpenAI Compatibility": "http://localhost:11434/v1/models"
+    }
+    
+    for service, url in checks.items():
+        try:
+            response = requests.get(url, timeout=5)
+            if response.status_code == 200:
+                print(f"✅ {service}: Healthy")
+            else:
+                print(f"⚠️ {service}: Status {response.status_code}")
+        except requests.exceptions.RequestException as e:
+            print(f"❌ {service}: {str(e)}")
+    
+    # Test model responsiveness
+    try:
+        response = requests.post(
+            "http://localhost:11434/v1/chat/completions",
+            json={
+                "model": "gpt-oss:120b",
+                "messages": [{"role": "user", "content": "test"}],
+                "max_tokens": 1
+            },
+            timeout=10
+        )
+        if response.status_code == 200:
+            print(f"✅ Model Response: Working")
+        else:
+            print(f"⚠️ Model Response: Status {response.status_code}")
+    except Exception as e:
+        print(f"❌ Model Response: {str(e)}")
+
+if __name__ == "__main__":
+    print(f"Health Check - {datetime.now()}")
+    print("-" * 40)
+    check_ollama_health()
+```
+
+## 6. API Response Format
 
 #### Successful Generation Response:
 ```json
@@ -741,7 +890,7 @@ Each line is a JSON object when streaming is enabled:
 {"model":"gpt-oss:latest","created_at":"2025-01-15T10:30:01.000Z","response":"","done":true,"total_duration":1000000000}
 ```
 
-### Performance Tips
+## 7. Performance Tips
 
 1. **Keep Models Warm**: Use the `keep_alive` parameter to keep models loaded in memory:
 ```bash
@@ -764,7 +913,7 @@ curl http://localhost:11434/api/generate -d '{
 }'
 ```
 
-### Troubleshooting API Access
+## 8. Troubleshooting API Access
 
 If you encounter issues:
 
@@ -777,4 +926,8 @@ For more detailed API documentation, refer to the [Ollama API Documentation](htt
 
 ## Reference
 - [[GitHub Issues] the runner fails to pick up NVIDIA GPUs with SLURM](https://github.com/ollama/ollama/issues/11842#issuecomment-3177221414)
-- [Running DeepSeek-R1 with Ollama on a Supercomputer](https://github.com/hwang2006/deepseek-with-ollama-on-supercomputer) 
+- [Running DeepSeek-R1 with Ollama on a Supercomputer](https://github.com/hwang2006/deepseek-with-ollama-on-supercomputer)
+- [Ollama API Documentation](https://github.com/ollama/ollama/blob/main/docs/api.md)
+- [OpenAI API Reference](https://platform.openai.com/docs/api-reference)
+- [GPT-OSS Documentation](https://cookbook.openai.com/articles/gpt-oss/run-locally-ollama)
+- [Ollama OpenAI Compatibility](https://github.com/ollama/ollama/blob/main/docs/openai.md)
