@@ -96,6 +96,11 @@ def get_weather(city: str) -> Dict[str, Any]:
     except Exception as e:
         return {"city": city, "error": f"unexpected error: {e.__class__.__name__}"}
 
+#@function_tool
+#def get_weather(city: str):
+#    """Return a stubbed weather string."""
+#    return f"The weather in {city} is sunny, 22°C."
+
 async def main(prompt: str):
     # Point LiteLLM's OpenAI provider at Ollama's OpenAI-compatible endpoint
     model = LitellmModel(
