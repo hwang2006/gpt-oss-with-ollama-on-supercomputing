@@ -760,15 +760,17 @@ for chunk in stream:
         print(chunk.choices[0].delta.content, end="")
 ```
 
-### 3. Python Agents SDK with LiteLLM
+### 3. OpenAI Agents SDK Integration
+
+For advanced agent-based workflows, you can use OpenAI's Agents SDK with Ollama.
 
 First, install required packages:
 ```bash
 pip install "openai-agents[litellm]"
 ```
-#### Agents SDK:
+Then use the Agents SDK:
 ```python
-# agents_with_litellm.py
+# openai_agents_with_litellm.py
 import asyncio
 from agents import Agent, Runner, function_tool, set_tracing_disabled
 from agents.extensions.models.litellm_model import LitellmModel
