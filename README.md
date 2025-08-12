@@ -625,7 +625,7 @@ curl http://localhost:11434/api/generate -d '{
 }'
 ```
 
-### Advanced Generation Parameters
+#### Advanced Generation Parameters
 Customize generation with fine-tuned control:
 ```bash
 curl http://localhost:11434/api/generate -d '{
