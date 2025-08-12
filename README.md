@@ -1,5 +1,5 @@
 # Running GPT-OSS with Ollama + Gradio on a Supercomputer (SLURM + Singularity)
-This repository provides a guide and scripts for running [Ollama](https://ollama.com/) with large-scale language models — including OpenAI’s newly released GPT-OSS — on a supercomputer, using [Singularity](https://docs.sylabs.io/guides/3.5/user-guide/introduction.html) for containerization and SLURM for job scheduling. It also offers a [Gradio](https://www.gradio.app/) web interface for easy, browser-based interaction with your models, along with REST API access for programmatic workflows.
+This repository provides a guide and scripts for running [Ollama](https://ollama.com/) with large-scale language models — including OpenAI’s newly released GPT-OSS — on a supercomputer, using [Singularity](https://docs.sylabs.io/guides/3.5/user-guide/introduction.html) for containerization and [SLURM](https://slurm.schedmd.com/documentation.html) for job scheduling. It also offers a [Gradio](https://www.gradio.app/) web interface for easy, browser-based interaction with your models, along with REST API access for programmatic workflows.
 
 The release of GPT-OSS as a fully open-source large language model family marks a major shift in the accessibility of cutting-edge AI. For the first time, researchers, developers, and institutions can run state-of-the-art models without depending on closed APIs, opening new opportunities for transparent experimentation, customization, and deployment at scale.
 
@@ -16,6 +16,7 @@ The goal of this repository is to provide a ready-to-use HPC workflow that takes
 - [Running Ollama and Gradio on a Compute Node](#running-ollama-and-gradio-on-a-compute-node)
 - [Connecting to the Gradio UI](#connecting-to-the-gradio-ui)
 - [API Access](#api-access)
+- [Reference](#reference)
 
 ## Introduction
 This setup is designed for HPC environments where:
@@ -770,3 +771,7 @@ If you encounter issues:
 4. **Memory Errors**: Check GPU memory availability with `nvidia-smi`
 
 For more detailed API documentation, refer to the [Ollama API Documentation](https://github.com/ollama/ollama/blob/main/docs/api.md).
+
+## Reference
+- [(GitHub Issues) the runner fails to pick up NVIDIA GPUs with SLURM](https://github.com/ollama/ollama/issues/11842#issuecomment-3177221414)
+- [Running DeepSeek-R1 with Ollama on a Supercomputer](https://github.com/hwang2006/deepseek-with-ollama-on-supercomputer) 
