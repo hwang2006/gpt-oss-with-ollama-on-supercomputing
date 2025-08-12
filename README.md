@@ -153,7 +153,7 @@ to set up this repository on your scratch directory.
 ```
 [glogin01]$ cd /scratch/$USER
 [glogin01]$ git clone https://github.com/hwang2006/gpt-oss-with-ollama-on-supercomputing.git
-[glogin01]$ cd gpt-oss-with-ollama-on-supercomputer
+[glogin01]$ cd gpt-oss-with-ollama-on-supercomputing
 ```
 
 ## Preparing Ollama Singularity Image
