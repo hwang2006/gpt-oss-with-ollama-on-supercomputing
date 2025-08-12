@@ -25,9 +25,12 @@ set +e
 SERVER="$(hostname)"
 PORT_GRADIO=7860
 OLLAMA_PORT=11434
+
+# Set a model to preload/warm in the UI; set to 0 to disable preloading
 #DEFAULT_MODEL="gemma:latest"      # Preferred model (UI will auto-select & warm this)
 #DEFAULT_MODEL="gpt-oss:latest"      # Preferred model (UI will auto-select & warm this)
 DEFAULT_MODEL=0
+
 #OLLAMA_CTX=4096                 # (optional) set for faster cold start on big models
 
 WORK_DIR="/scratch/$USER/gpt-oss-with-ollama-on-supercomputing/"
