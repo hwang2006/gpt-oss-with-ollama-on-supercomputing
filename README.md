@@ -647,7 +647,7 @@ curl http://localhost:11434/api/generate -d '{
 Ollama provides a **Chat Completions-compatible API** that works with the OpenAI SDK. This allows you to reuse existing OpenAI code with minimal modifications.
 First, install required packages:
 ```bash
-pip install openai
+[glogin01]$ pip install openai
 ```
 
 #### Basic Chat Usage with OpenAI SDK
@@ -766,7 +766,10 @@ For advanced agent-based workflows, you can use OpenAI's Agents SDK with Ollama.
 
 First, install required packages:
 ```bash
-pip install "openai-agents[litellm]"
+[glogin01]$ pip install "openai-agents[litellm]"
+[glogin01]$ pip list | grep openai
+openai                    1.99.9
+openai-agents             0.2.6
 ```
 Then use the Agents SDK:
 ```python
