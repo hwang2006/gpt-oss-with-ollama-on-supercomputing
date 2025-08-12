@@ -923,7 +923,7 @@ If you encounter issues:
 4. **Memory Errors**: Check GPU memory availability with `nvidia-smi`
 
 ## Reference
-- [GitHub Issues] the runner fails to pick up NVIDIA GPUs with SLURM](https://github.com/ollama/ollama/issues/11842#issuecomment-3177221414)
+- [[GitHub Issues] the runner process fails to pick up NVIDIA GPUs with SLURM](https://github.com/ollama/ollama/issues/11842#issuecomment-3177221414)
 - [Running DeepSeek-R1 with Ollama on a Supercomputer](https://github.com/hwang2006/deepseek-with-ollama-on-supercomputer)
 - [Ollama API Documentation](https://github.com/ollama/ollama/blob/main/docs/api.md)
 - [Ollama OpenAI Compatibility](https://github.com/ollama/ollama/blob/main/docs/openai.md)
