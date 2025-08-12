@@ -539,7 +539,7 @@ In addition to the Gradio web UI, you can interact with the Ollama server using 
 ssh -L localhost:11434:gpu##:11434 $USER@neuron.ksc.re.kr
 ```
 
-## 1. Native Ollama REST API
+### 1. Native Ollama REST API
 
 #### List Available Models
 Check which models are currently available on the server:
@@ -642,7 +642,7 @@ curl http://localhost:11434/api/generate -d '{
 }'
 ```
 
-## 2. OpenAI-Compatible API
+### 2. OpenAI-Compatible API
 
 Ollama provides a **Chat Completions-compatible API** that works with the OpenAI SDK. This allows you to reuse existing OpenAI code with minimal modifications.
 First, install required packages:
@@ -650,7 +650,7 @@ First, install required packages:
 pip install agents[litellm]
 ```
 
-### Basic Chat Usage with OpenAI SDK
+#### Basic Chat Usage with OpenAI SDK
 ```python
 # openai_chat.py
 from openai import OpenAI
@@ -672,7 +672,7 @@ response = client.chat.completions.create(
 
 print(response.choices[0].message.content)
 ```
-### Tools Usage (Function Calling)
+#### Tools Usage (Function Calling)
 
 Ollama supports OpenAI-style function calling:
 ```python
@@ -737,7 +737,7 @@ if message.tool_calls:
 
 ```
 
-### Streaming Responses
+#### Streaming Responses
 
 ```python
 # openai_streaming.py
@@ -760,9 +760,9 @@ for chunk in stream:
         print(chunk.choices[0].delta.content, end="")
 ```
 
-## 4. Batch Processing Examples
+### 4. Batch Processing Examples
 
-### Bash Script for Ollama Batch processing
+#### Bash Script for Ollama Batch processing
 ```bash
 #!/bin/bash
 # batch_process_ollama.sh
@@ -784,7 +784,7 @@ done < prompts.txt
 
 ```
 
-### Bash Script for OpenAI Batch processing
+#### Bash Script for OpenAI Batch processing
 ```bash
 #!/bin/bash
 # batch_process_openai.sh
@@ -809,9 +809,9 @@ while IFS= read -r prompt; do
 done < prompts.txt
 ```
 
-## 5. Health Monitoring
+### 6. Health Monitoring
 
-### API Health Check Script
+#### API Health Check Script
 ```python
 #!/usr/bin/env python3
 # health_check.py
@@ -861,7 +861,7 @@ if __name__ == "__main__":
     check_ollama_health()
 ```
 
-## 6. API Response Format
+### 7. API Response Format
 
 #### Successful Generation Response:
 ```json
@@ -890,7 +890,7 @@ Each line is a JSON object when streaming is enabled:
 {"model":"gpt-oss:latest","created_at":"2025-01-15T10:30:01.000Z","response":"","done":true,"total_duration":1000000000}
 ```
 
-## 7. Performance Tips
+### 8. Performance Tips
 
 1. **Keep Models Warm**: Use the `keep_alive` parameter to keep models loaded in memory:
 ```bash
@@ -913,7 +913,7 @@ curl http://localhost:11434/api/generate -d '{
 }'
 ```
 
-## 8. Troubleshooting API Access
+### 8. Troubleshooting API Access
 
 If you encounter issues:
 
