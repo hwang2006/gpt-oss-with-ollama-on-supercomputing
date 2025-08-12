@@ -962,7 +962,7 @@ while IFS= read -r prompt; do
 done < prompts.txt
 ```
 
-### 6. Health Monitoring
+### 5. Health Monitoring
 
 #### API Health Check Script
 ```python
@@ -1014,7 +1014,7 @@ if __name__ == "__main__":
     check_ollama_health()
 ```
 
-### 7. API Response Format
+### 6. API Response Format
 
 #### Successful Generation Response:
 ```json
@@ -1043,7 +1043,7 @@ Each line is a JSON object when streaming is enabled:
 {"model":"gpt-oss:latest","created_at":"2025-01-15T10:30:01.000Z","response":"","done":true,"total_duration":1000000000}
 ```
 
-### 8. Performance Tips
+### 7. Performance Tips
 
 1. **Keep Models Warm**: Use the `keep_alive` parameter to keep models loaded in memory:
 ```bash
@@ -1066,7 +1066,7 @@ curl http://localhost:11434/api/generate -d '{
 }'
 ```
 
-### 9. Troubleshooting API Access
+### 8. Troubleshooting API Access
 
 If you encounter issues:
 
