@@ -31,8 +31,6 @@ They demonstrate the five common paths:
 (ollama-hpc) [glogin01]$ make litellm_native
 ```
 
-
-
 ## Environment Variables (Optional, with Defaults)
 
 ```ini
@@ -56,14 +54,15 @@ OLLAMA_URL=http://localhost:11434
 - `openai_client_v1.py` — OpenAI SDK → /v1
 - `agents_litellm_openai_provider_v1.py` — Agents SDK via LiteLLM (OpenAI provider) → /v1
 - `litellm_ollama_provider_native.py` — LiteLLM (Ollama provider) → native /api/*
+- `requirements.txt` — dependencies for all examples
 - `Makefile` — convenience targets
 
 ## The 5 Ways (What/When/How)
 
 | # | Path | Endpoint | Library you call | Input shape | Length cap | Context size | Tools / Function calling | Best for |
 |---|------|----------|-----------------|-------------|------------|--------------|-------------------------|----------|
-| 1 | Ollama native – generate | /api/generate | requests (HTTP) | `prompt: str` | `num_predict` | `options.num_ctx` | ❌ native API | Exact prompt control (use raw:true), benchmarks, RAG |
-| 2 | Ollama native – chat | /api/chat | requests (HTTP) | `messages: [{role, content}]` | `num_predict` | `options.num_ctx` | ❌ native API | Multi-turn chats with roles, still with native knobs |
+| 1 | Ollama native – generate | /api/generate | requests (HTTP) | `prompt: str` | `num_predict` | `"options": {"num_ctx": NUM_CTX}` | ❌ native API | Exact prompt control (use raw:true), benchmarks, RAG |
+| 2 | Ollama native – chat | /api/chat | requests (HTTP) | `messages: [{role, content}]` | `num_predict` | `"options": {"num_ctx": NUM_CTX}` | ❌ native API | Multi-turn chats with roles, still with native knobs |
 | 3 | OpenAI Python SDK → /v1 | /v1/* | openai | `messages: [...]` | `max_tokens` | (not exposed; backend default) | ✅ OpenAI schema | Max compatibility with OpenAI-style apps/agents |
 | 4 | LiteLLM (OpenAI provider) → /v1 | /v1/* | litellm (or Agents SDK LitellmModel) | `messages: [...]` | `max_tokens` | (not exposed; backend default) | ✅ OpenAI schema | Using frameworks (Agents, LangChain) that speak OpenAI |
 | 5 | LiteLLM (Ollama provider) → native | /api/* | litellm | `messages: [...] (mapped)` | `max_tokens → num_predict` | `via extra_body: {"options":{"num_ctx":...}}` | ⚠️ mixed (provider-specific) | OpenAI-like ergonomics plus native knobs |
