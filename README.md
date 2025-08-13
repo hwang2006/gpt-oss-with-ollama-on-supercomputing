@@ -30,7 +30,6 @@ The SLURM job script:
 - Starts Gradio UI in parallel, connected to the Ollama API.
 - Includes **heartbeat monitoring** and GPU utilization reports.
 - Handles **port forwarding** instructions automatically.
-- Provides **REST API access** for programmatic interaction.
 
 ## Requirements
 - **HPC cluster** with SLURM
