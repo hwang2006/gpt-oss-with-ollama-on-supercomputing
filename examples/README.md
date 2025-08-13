@@ -14,14 +14,11 @@ They demonstrate the five common paths:
 ## Quick Start
 
 ```bash
-# 1) Install dependencies
-pip install -r requirements.txt
-
-# 2) Make sure your Ollama server is running locally
+# 1) Make sure your Ollama server is running locally
 #    and you have a model pulled (e.g., gpt-oss:latest)
 curl http://localhost:11434/api/tags
 
-# 3) Run any example via Makefile (or run the scripts directly)
+# 2) Run any example via Makefile (or run the scripts directly)
 make chat
 make generate
 make openai
@@ -54,7 +51,6 @@ OLLAMA_URL=http://localhost:11434
 - `openai_client_v1.py` — OpenAI SDK → /v1
 - `agents_litellm_openai_provider_v1.py` — Agents SDK via LiteLLM (OpenAI provider) → /v1
 - `litellm_ollama_provider_native.py` — LiteLLM (Ollama provider) → native /api/*
-- `requirements.txt` — dependencies for all examples
 - `Makefile` — convenience targets
 
 ## The 5 Ways (What/When/How)
