@@ -9,14 +9,14 @@ export MODEL PROMPT NUM_CTX NUM_PREDICT OPENAI_BASE_URL OPENAI_API_KEY OLLAMA_UR
 .PHONY: all chat generate openai agents_openai litellm_native
 all: chat generate openai agents_openai litellm_native
 chat:
-        python ollama_chat_simple.py
+	python ollama_chat_simple.py
 generate:
-        python ollama_generate_raw.py
+	python ollama_generate_raw.py
 openai:
-        python openai_client_v1.py
+	python openai_client_v1.py
 agents_openai:
-        python agents_litellm_openai_provider_v1.py
+	python agents_litellm_openai_provider_v1.py
 litellm_native:
-        python litellm_ollama_provider_native.py
+	python litellm_ollama_provider_native.py
 
 
