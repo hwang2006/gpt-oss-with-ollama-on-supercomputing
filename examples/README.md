@@ -52,7 +52,7 @@ OLLAMA_URL=http://localhost:11434
 - `ollama_generate_raw.py` — native /api/generate with raw:true (exact prompt control)
 - `ollama_chat_simple.py` — native /api/chat (role-based)
 - `openai_client_v1.py` — OpenAI SDK → /v1
-- `agents_litellm_openai_provider_v1.py` — Agents SDK via LiteLLM (OpenAI provider) → /v1
+- `agents_litellm_openai_provider_v1.py` — OpenAI Agents SDK via LiteLLM (OpenAI provider) → /v1
 - `litellm_ollama_provider_native.py` — LiteLLM (Ollama provider) → native /api/*
 - `requirements.txt` — dependencies for all examples
 - `Makefile` — convenience targets
