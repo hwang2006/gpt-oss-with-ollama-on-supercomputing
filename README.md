@@ -15,7 +15,7 @@ The goal of this repository is to provide a ready-to-use HPC workflow that takes
 - [Creating a Conda Virtual Environment](#creating-a-conda-virtual-environment)
 - [Running Ollama and Gradio on a Compute Node](#running-ollama-and-gradio-on-a-compute-node)
 - [Connecting to the Gradio UI](#connecting-to-the-gradio-ui)
-- [API Access](#api-access)
+- [API Quickstart & Cookbook (curl + Python)](#api-quickstart--cookbook-curl--python)
 - [Reference](#reference)
 
 ## Introduction
@@ -526,7 +526,7 @@ ssh -L localhost:7860:gpu50:7860 -L localhost:11434:gpu50:11434 qualis@neuron.ks
 
 <img width="1141" height="657" alt="Image" src="https://github.com/user-attachments/assets/5991e328-7140-40b9-a5d0-cc4bebf08157" />
 
-## API Access
+## API Quickstart & Cookbook (curl + Python)
 
 In addition to the Gradio web UI, you can interact with the Ollama server using multiple API approaches. For comprehensive examples and detailed comparisons of different integration methods, see the **[`examples/`](examples/) directory**, which contains **five minimal, runnable examples** demonstrating:
 
