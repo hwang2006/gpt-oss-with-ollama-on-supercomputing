@@ -527,12 +527,42 @@ ssh -L localhost:7860:gpu50:7860 -L localhost:11434:gpu50:11434 qualis@neuron.ks
 <img width="1141" height="657" alt="Image" src="https://github.com/user-attachments/assets/5991e328-7140-40b9-a5d0-cc4bebf08157" />
 
 ## API Access
-In addition to the Gradio web UI, you can interact with the Ollama server using multiple API approaches:
+
+In addition to the Gradio web UI, you can interact with the Ollama server using multiple API approaches. For comprehensive examples and detailed comparisons of different integration methods, see the **[`examples/`](examples/) directory**, which contains **five minimal, runnable examples** demonstrating:
+
+1. **Ollama native – generate** (`/api/generate`) - Direct prompt control
+2. **Ollama native – chat** (`/api/chat`) - Multi-turn conversations  
+3. **OpenAI Python SDK → /v1** - Drop-in OpenAI replacement
+4. **LiteLLM (OpenAI provider) → /v1** - Framework integration
+5. **LiteLLM (Ollama provider) → native** - Best of both worlds
+
+### Quick API Test
+After setting up port forwarding, test the APIs:
+
+```bash
+# Test native Ollama API
+curl http://localhost:11434/api/tags
+
+# Test OpenAI-compatible endpoint  
+curl http://localhost:11434/v1/models
+
+# Run the provided examples for deeper exploration
+cd examples/
+make help          # See all available examples
+make openai        # OpenAI-compatible client
+make chat          # Native Ollama chat
+make agents_openai # LiteLLM with agents
+```
+
+**👉 See the [examples README](examples/README.md) for detailed API comparisons, parameter mapping, and integration patterns.**
+
+### Multiple API Compatibility Options
 1. **Native Ollama REST API** - Direct access to Ollama's endpoints
 2. **OpenAI-compatible API** - Use existing OpenAI SDK code with minimal changes
-3. **Ollama SDKs** - Python and JavaScript native libraries
+3. **LiteLLM Integration** - Framework compatibility (Agents, LangChain, etc.)
+4. **Multiple Client Libraries** - Python, JavaScript, and more
 
-### Prerequisites
+### Prerequisites for API Access
 - Ensure the Ollama server is running (follow the instructions above)
 - Set up port forwarding if accessing from your local machine:
 ```bash
