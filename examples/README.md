@@ -14,16 +14,21 @@ They demonstrate the five common paths:
 ## Quick Start
 
 ```bash
-# 1) Make sure your Ollama server is running locally
-#    and you have a model pulled (e.g., gpt-oss:latest)
-curl http://localhost:11434/api/tags
+# 1) make sure the virtual environments (e.g., ollama-hpc) is activated
+(ollama-hpc) [glogin01]$ ls
+./   agents_litellm_openai_provider_v1.py  Makefile               ollama_generate_raw.py  README.md
+../  litellm_ollama_provider_native.py     ollama_chat_simple.py  openai_client_v1.py
 
-# 2) Run any example via Makefile (or run the scripts directly)
-make chat
-make generate
-make openai
-make agents_openai
-make litellm_native
+# 2) Make sure your Ollama server is running locally
+#    and you have a model pulled (e.g., gpt-oss:latest)
+(ollama-hpc) [glogin01]$ curl http://localhost:11434/api/tags
+
+# 3) Run any example via Makefile (or run the scripts directly)
+(ollama-hpc) [glogin01]$ make chat
+(ollama-hpc) [glogin01]$ make generate
+(ollama-hpc) [glogin01]$ make openai
+(ollama-hpc) [glogin01]$ make agents_openai
+(ollama-hpc) [glogin01]$ make litellm_native
 ```
 
 
