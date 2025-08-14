@@ -547,6 +547,7 @@ curl http://localhost:11434/v1/models
 
 # Run the provided examples for deeper exploration
 cd examples/
+make help          # Show usage info and and available targets
 make chat          # Native Ollama chat
 make openai        # OpenAI-compatible client
 make agents_openai # LiteLLM with agents
