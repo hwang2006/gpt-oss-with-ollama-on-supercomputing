@@ -547,9 +547,8 @@ curl http://localhost:11434/v1/models
 
 # Run the provided examples for deeper exploration
 cd examples/
-make help          # See all available examples
-make openai        # OpenAI-compatible client
 make chat          # Native Ollama chat
+make openai        # OpenAI-compatible client
 make agents_openai # LiteLLM with agents
 ```
 
@@ -796,6 +795,8 @@ For advanced agent-based workflows, you can use OpenAI's Agents SDK with Ollama.
 First, install required packages:
 ```bash
 [glogin01]$ pip install "openai-agents[litellm]"
+```
+```bash
 [glogin01]$ pip list | grep openai
 openai                    1.99.9
 openai-agents             0.2.6
