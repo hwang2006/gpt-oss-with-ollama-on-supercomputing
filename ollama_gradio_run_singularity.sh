@@ -12,10 +12,10 @@
 ##SBATCH --partition=gdebug01
 #SBATCH --time=48:00:00        # walltime
 ##SBATCH --time=12:00:00        # walltime
-#SBATCH --nodes=1             # the number of nodes
-#SBATCH --ntasks-per-node=1   # number of tasks per node
-#SBATCH --gres=gpu:1          # number of gpus per node
-#SBATCH --cpus-per-task=8     # number of cpus per task
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --gres=gpu:1
+#SBATCH --cpus-per-task=8
 
 set +e
 
@@ -27,11 +27,9 @@ PORT_GRADIO=7860
 OLLAMA_PORT=11434
 
 # Set a model to preload/warm in the UI; set to 0 to disable preloading
-#DEFAULT_MODEL="gemma:latest"      # Preferred model (UI will auto-select & warm this)
-#DEFAULT_MODEL="gpt-oss:latest"      # Preferred model (UI will auto-select & warm this)
+#DEFAULT_MODEL="gemma:latest"
+#DEFAULT_MODEL="gpt-oss:latest"
 DEFAULT_MODEL=0
-
-#OLLAMA_CTX=4096                 # (optional) set for faster cold start on big models
 
 WORK_DIR="/scratch/$USER/gpt-oss-with-ollama-on-supercomputing/"
 OLLAMA_MODELS="/scratch/$USER/.ollama"
@@ -58,13 +56,37 @@ export TMPDIR="/scratch/${USER}/tmp"
 mkdir -p "$WORK_DIR" "$OLLAMA_MODELS" "$XDG_CACHE_HOME" "$TMPDIR"
 
 #######################################
-# Cleanup
+# Cleanup — kill only what we started
 #######################################
 cleanup() {
   echo "[$(date)] Cleaning up processes..."
-  [ -n "$OLLAMA_PID" ] && kill -TERM "$OLLAMA_PID" 2>/dev/null && sleep 2 && kill -9 "$OLLAMA_PID" 2>/dev/null
-  [ -n "$GRADIO_PID" ] && kill -TERM "$GRADIO_PID" 2>/dev/null && sleep 2 && kill -9 "$GRADIO_PID" 2>/dev/null
-  pkill -f "ollama" 2>/dev/null || true
+
+  # Try to gracefully stop models (best effort; ignore failures)
+  if curl -fsS --max-time 2 "http://127.0.0.1:${OLLAMA_PORT}/api/ps" >/dev/null 2>&1; then
+    singularity exec --nv ./ollama_latest.sif ollama stop all >/dev/null 2>&1 || true
+  fi
+
+  # Kill Gradio (PID we launched)
+  if [ -n "${GRADIO_PID:-}" ] && kill -0 "$GRADIO_PID" 2>/dev/null; then
+    kill -TERM "$GRADIO_PID" 2>/dev/null || true
+    sleep 2
+    kill -KILL "$GRADIO_PID" 2>/dev/null || true
+  fi
+
+  # Kill the entire Ollama serve process group (that we created with setsid)
+  if [ -n "${OLLAMA_PGID:-}" ]; then
+    kill -TERM -- -"${OLLAMA_PGID}" 2>/dev/null || true
+    sleep 3
+    kill -KILL -- -"${OLLAMA_PGID}" 2>/dev/null || true
+  elif [ -n "${OLLAMA_PID:-}" ] && kill -0 "$OLLAMA_PID" 2>/dev/null; then
+    # Fallback: kill by parent PID (children first)
+    pkill -TERM -P "$OLLAMA_PID" 2>/dev/null || true
+    kill -TERM "$OLLAMA_PID" 2>/dev/null || true
+    sleep 3
+    pkill -KILL -P "$OLLAMA_PID" 2>/dev/null || true
+    kill -KILL "$OLLAMA_PID" 2>/dev/null || true
+  fi
+
   echo "[$(date)] Cleanup complete"
 }
 trap cleanup EXIT INT TERM
@@ -94,34 +116,20 @@ source ~/.bashrc
 conda activate ollama-hpc
 
 #######################################
-# Clean stale logs / procs
+# Clean stale logs / procs (narrow match)
 #######################################
 pkill -f "ollama serve" 2>/dev/null || true
-pkill -f "ollama_web" 2>/dev/null || true
+pkill -f "ollama_web.py" 2>/dev/null || true
 rm -f "$OLLAMA_LOG" "$GRADIO_LOG"
 
 #######################################
-# Start Ollama (Singularity RUN)
+# Start Ollama (Singularity RUN) in its own process group
 #######################################
 echo "🚀 Starting Ollama server..."
-cd "$WORK_DIR"  #make sure that ollama_latest.sif is located.:
+cd "$WORK_DIR"  # ensure ollama_latest.sif is here
 
-# Safer for shared nodes: bind to localhost; tunnel as needed.
-#export SINGULARITYENV_OLLAMA_HOST="127.0.0.1:${OLLAMA_PORT}"
-#export SINGULARITYENV_OLLAMA_KEEP_ALIVE="10m"
-#export SINGULARITYENV_OLLAMA_LLM_LIBRARY="cuda"
-#export SINGULARITYENV_OLLAMA_FLASH_ATTENTION="true"
-
-# Tune as desired:
-#export SINGULARITYENV_OLLAMA_CONTEXT_LENGTH="${OLLAMA_CONTEXT_LENGTH:-4096}"
-#export SINGULARITYENV_OLLAMA_NUM_PARALLEL="${OLLAMA_NUM_PARALLEL:-4}"
-#export SINGULARITYENV_OLLAMA_MAX_LOADED_MODELS="${OLLAMA_MAX_LOADED_MODELS:-2}"
-#export SINGULARITYENV_OLLAMA_MODELS="${OLLAMA_MODELS}"
-#export SINGULARITYENV_CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:-0}"
-
-
-# Launch
-nohup singularity run --nv \
+# Launch in a new session so we can kill just this group later
+nohup setsid singularity run --nv \
   --env OLLAMA_LLM_LIBRARY=cuda \
   --env OLLAMA_HOST=0.0.0.0:${OLLAMA_PORT} \
   --env OLLAMA_MODELS="$OLLAMA_MODELS" \
@@ -138,7 +146,9 @@ nohup singularity run --nv \
   ./ollama_latest.sif serve > "$OLLAMA_LOG" 2>&1 &
 
 OLLAMA_PID=$!
-echo "Ollama PID: $OLLAMA_PID"
+# Get the process group id of the singularity process we just started
+OLLAMA_PGID="$(ps -o pgid= "$OLLAMA_PID" | tr -d ' ')"
+echo "Ollama PID: $OLLAMA_PID (PGID: $OLLAMA_PGID)"
 
 #######################################
 # Wait for Ollama API
@@ -146,7 +156,7 @@ echo "Ollama PID: $OLLAMA_PID"
 MAX_WAIT=180
 COUNTER=0
 while [ $COUNTER -lt $MAX_WAIT ]; do
-  if curl -s "http://localhost:${OLLAMA_PORT}/api/tags" >/dev/null; then
+  if curl -s "http://127.0.0.1:${OLLAMA_PORT}/api/tags" >/dev/null; then
     echo "✅ Ollama API is up!"
     break
   fi
@@ -154,14 +164,17 @@ while [ $COUNTER -lt $MAX_WAIT ]; do
   echo "Waiting for Ollama API... (${COUNTER}s)"
   sleep 2
 done
-[ $COUNTER -ge $MAX_WAIT ] && { echo "❌ Ollama API startup timeout"; tail -60 "$OLLAMA_LOG"; exit 1; }
+if [ $COUNTER -ge $MAX_WAIT ]; then
+  echo "❌ Ollama API startup timeout"
+  tail -60 "$OLLAMA_LOG" || true
+  exit 1
+fi
 
 #######################################
-# Start Gradio (UI reads DEFAULT_MODEL & preloads it)
+# Start Gradio (UI reads DEFAULT_MODEL & may preload it)
 #######################################
 echo "🌐 Starting Gradio web interface..."
 
-# 🔑 critical: also export DEFAULT_MODEL to THIS shell so Python sees it
 export DEFAULT_MODEL
 nohup python ollama_web.py --host=0.0.0.0 --port=${PORT_GRADIO} > "$GRADIO_LOG" 2>&1 &
 GRADIO_PID=$!
@@ -217,12 +230,12 @@ LAST_HEARTBEAT=$(date +%s)
 while true; do
   if ! kill -0 "$OLLAMA_PID" 2>/dev/null; then
     echo "[$(date)] ERROR: Ollama process died"
-    tail -60 "$OLLAMA_LOG"
+    tail -60 "$OLLAMA_LOG" || true
     break
   fi
   if ! kill -0 "$GRADIO_PID" 2>/dev/null; then
     echo "[$(date)] ERROR: Gradio process died"
-    tail -60 "$GRADIO_LOG"
+    tail -60 "$GRADIO_LOG" || true
     break
   fi
 
@@ -257,3 +270,4 @@ while true; do
   fi
   sleep 30
 done
+

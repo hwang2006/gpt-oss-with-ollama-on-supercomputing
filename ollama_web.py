@@ -5,7 +5,6 @@ import subprocess
 import os
 import argparse
 import json
-import sys
 import html
 import time
 import re
@@ -15,7 +14,6 @@ class OllamaChat:
         self.base_url = ollama_url
         self.models_dir = os.getenv("OLLAMA_MODELS", "/scratch/qualis/workspace/ollama/models")
         self.session = requests.Session()
-
         retries = Retry(total=3, backoff_factor=1, status_forcelist=[429, 500, 502, 503, 504])
         self.session.mount("http://", HTTPAdapter(max_retries=retries))
 
@@ -34,12 +32,12 @@ class OllamaChat:
         return model_name in self.get_available_models()
 
     def pull_model(self, model_name, progress: gr.Progress):
-        if not model_name.strip():
+        if not model_name or not model_name.strip():
             return "Error: Please specify a model name."
 
         try:
             progress(0, desc=f"Starting pull: {model_name}")
-            cmd = ["ollama", "pull", model_name]
+            cmd = ["ollama", "pull", model_name.strip()]
             proc = subprocess.Popen(
                 cmd,
                 stdout=subprocess.PIPE,
@@ -89,6 +87,7 @@ class OllamaChat:
 
             progress(1, desc=f"Pull complete: {model_name}")
 
+            # Wait briefly for /api/tags to reflect the new model
             retries = 5
             for _ in range(retries):
                 avail = self.get_available_models()
@@ -173,21 +172,23 @@ def create_interface(ollama_url):
         gr.HTML(
             """
             <style>
-            .gradio-container { max-width: 1500px !important; }
-            #chat_col .gr-chatbot { max-width: 100% !important; }
-            #side_col { min-width: 240px; max-width: 260px; }
+              .gradio-container { max-width: 1600px !important; }
+              #chat_col .gr-chatbot { max-width: 100% !important; }
+              #side_col { min-width: 260px; max-width: 300px; }
             </style>
             """
         )
         gr.Markdown("# Ollama Chat Interface")
 
         with gr.Row():
-            with gr.Column(scale=10, elem_id="chat_col"):
+            # Wider chat area
+            with gr.Column(scale=11, elem_id="chat_col"):
                 chatbot = gr.Chatbot(height=520, type="messages")
                 message = gr.Textbox(label="Message", placeholder="Type your message here...")
                 submit = gr.Button("Send")
 
-            with gr.Column(scale=2, elem_id="side_col"):
+            # Narrower side panel
+            with gr.Column(scale=1, min_width=260, elem_id="side_col"):
                 model_dropdown = gr.Dropdown(
                     choices=models if models else ["No models available"],
                     value=default_model,
@@ -226,23 +227,31 @@ def create_interface(ollama_url):
             else:
                 return gr.update(choices=["No models available"], value=None)
 
-        def pull_model_action(model_name, progress=gr.Progress()):
+        def pull_model_action(model_name, progress=gr.Progress(track_tqdm=False)):
             status = chat.pull_model(model_name, progress)
             updated = update_model_list()
+
             if ENV_DEFAULT and ENV_DEFAULT in updated:
                 selected = ENV_DEFAULT
-            elif model_name in updated:
-                selected = model_name
+            elif model_name.strip() in updated:
+                selected = model_name.strip()
             else:
                 selected = updated[0] if updated else None
+
+            # Return: status text, dropdown update, and clear the input textbox
             return (
                 status,
                 gr.update(choices=updated if updated else ["No models available"], value=selected),
+                gr.update(value="")  # clear input box after pull
             )
 
         submit.click(respond, [message, chatbot, model_dropdown, temperature], [message, chatbot])
         message.submit(respond, [message, chatbot, model_dropdown, temperature], [message, chatbot])
-        pull_button.click(pull_model_action, inputs=[model_name_input], outputs=[pull_status, model_dropdown])
+        pull_button.click(
+            pull_model_action,
+            inputs=[model_name_input],
+            outputs=[pull_status, model_dropdown, model_name_input]
+        )
         refresh_button.click(refresh_models_action, outputs=[model_dropdown])
         clear.click(lambda: ([], ""), None, [chatbot, message], queue=False)
 
