@@ -23,7 +23,7 @@ set +e
 # Config you may tweak
 #######################################
 SERVER="$(hostname)"
-PORT_GRADIO=7860
+GRADIO_PORT=7860
 OLLAMA_PORT=11434
 
 # Set a model to preload/warm in the UI; set to 0 to disable preloading
@@ -99,11 +99,11 @@ echo "Starting Ollama + Gradio"
 echo "Date: $(date)"
 echo "Server: $SERVER"
 echo "SLURM Job ID: ${SLURM_JOB_ID}"
-echo "Gradio Port: $PORT_GRADIO"
+echo "Gradio Port: $GRADIO_PORT"
 echo "Ollama Port: $OLLAMA_PORT"
 echo "Default Model: $DEFAULT_MODEL"
 echo "========================================"
-echo "ssh -L localhost:${PORT_GRADIO}:${SERVER}:${PORT_GRADIO} -L localhost:${OLLAMA_PORT}:${SERVER}:${OLLAMA_PORT} ${USER}@neuron.ksc.re.kr" > "$PORT_FWD_FILE"
+echo "ssh -L localhost:${GRADIO_PORT}:${SERVER}:${GRADIO_PORT} -L localhost:${OLLAMA_PORT}:${SERVER}:${OLLAMA_PORT} ${USER}@neuron.ksc.re.kr" > "$PORT_FWD_FILE"
 
 #######################################
 # Env / modules
@@ -176,14 +176,14 @@ fi
 echo "🌐 Starting Gradio web interface..."
 
 export DEFAULT_MODEL
-nohup python ollama_web.py --host=0.0.0.0 --port=${PORT_GRADIO} > "$GRADIO_LOG" 2>&1 &
+nohup python ollama_web.py --host=0.0.0.0 --port=${GRADIO_PORT} > "$GRADIO_LOG" 2>&1 &
 GRADIO_PID=$!
 echo "Gradio PID: $GRADIO_PID"
 
 #######################################
 # Wait for Gradio UI
 #######################################
-GRADIO_URL="http://127.0.0.1:${PORT_GRADIO}/"
+GRADIO_URL="http://127.0.0.1:${GRADIO_PORT}/"
 echo "⏳ Waiting for Gradio UI at ${GRADIO_URL} ..."
 GRADIO_MAX_WAIT=900
 GRADIO_ELAPSED=0
@@ -213,11 +213,11 @@ fi
 #######################################
 echo "========================================="
 echo "🎉 All services started successfully!"
-echo "Gradio URL: http://${SERVER}:${PORT_GRADIO}"
-echo "Local access: http://localhost:${PORT_GRADIO} (after port forwarding)"
+echo "Gradio URL: http://${SERVER}:${GRADIO_PORT}"
+echo "Local access: http://localhost:${GRADIO_PORT} (after port forwarding)"
 echo "Ollama API: http://${SERVER}:${OLLAMA_PORT}"
 echo "Port forward for both:"
-echo "ssh -L localhost:${PORT_GRADIO}:${SERVER}:${PORT_GRADIO} -L localhost:${OLLAMA_PORT}:${SERVER}:${OLLAMA_PORT} ${USER}@neuron.ksc.re.kr"
+echo "ssh -L localhost:${GRADIO_PORT}:${SERVER}:${GRADIO_PORT} -L localhost:${OLLAMA_PORT}:${SERVER}:${OLLAMA_PORT} ${USER}@neuron.ksc.re.kr"
 echo "Logs:"
 echo "  Ollama: $OLLAMA_LOG"
 echo "  Gradio: $GRADIO_LOG"
@@ -259,7 +259,7 @@ while true; do
       echo "⚠️  Ollama API not responding"
     fi
 
-    if curl -s --max-time 5 "http://127.0.0.1:${PORT_GRADIO}" >/dev/null 2>&1; then
+    if curl -s --max-time 5 "http://127.0.0.1:${GRADIO_PORT}" >/dev/null 2>&1; then
       echo "✅ Gradio UI responsive"
     else
       echo "⚠️  Gradio UI not responding"
